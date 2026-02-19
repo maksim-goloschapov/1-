@@ -3,11 +3,27 @@
     <head>
         <meta charset="UTF-8">
         <link rel="stylesheet" href="style.css">
-        <title>Сайт</title>
+        <title>Codeblock Interpreter</title>
     </head>
     <body>
-        <h1>Проект</h1>
-        <button>Тест</button>
+        <h1>🧩 Codeblock Interpreter</h1>
+
+        <div class="toolbar">
+            <button id="add-variable">📦 Добавить переменную</button>
+            <button id="add-math">➕ Добавить математику</button>
+            <button id="run">▶️ Запустить</button>
+        </div>
+
+        <div class="workspace">
+            <h2>Программа:</h2>
+            <div id="blocks-container"></div>
+        </div>
+
+        <div class="console">
+            <h2>Консоль:</h2>
+            <div id="console-output"></div>
+        </div>
+        
         <script src="script.js"></script>
     </body>
 

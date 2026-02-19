@@ -1,25 +1,91 @@
-body{
+body {
     font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+    max-width: 800px;
+    margin: 0 auto;
     padding: 20px;
-}
-h1 {
-    color: #2c3e50;
-    text-align: center;
+    background: #f5f5f5;
 }
 
-button{
-    background-color: #3498db;
-    color: white;
+h1 { 
+    text-align: center;
+    color: #2c3e50;
+}
+
+.toolbar {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar button {
+    margin: 5px;
+    padding: 10px 15px;
+    font-size: 14px;
     border: none;
-    padding: 10px 20px;
-    font-size: 16px;
     border-radius: 5px;
     cursor: pointer;
-    display: block;
-    margin: 20px auto;
+    background: #3498db;
+    color: white;
 }
 
-button:hover {
-    background-color: #2980b9;
+.toolbar button:hover {
+    background: #2980b9;
+}
+
+.workspace, .console {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    min-height: 150px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    margin-top: 0;
+    color: #34495e;
+}
+
+#blocks-container {
+    border: 2px dashed #bdc3c7;
+    border-radius: 5px;
+    padding: 10px;
+    min-height: 100px;
+}
+
+.console {
+    background: #2c3e50;
+    color: #2ecc71;
+}
+
+.console h2 {
+    color: #ecf0f1;
+}
+
+#console-output {
+    background: #1a252f;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    min-height: 80px;
+}
+
+
+.block {
+    background: #ecf0f1;
+    border: 2px solid #3498db;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: move;
+}
+
+.block-variable {
+    border-left: 5px solid #e74c3c;
+}
+
+.block-math {
+    border-left: 5px solid #2ecc71;
 }
