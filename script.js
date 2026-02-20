@@ -8,6 +8,8 @@ const consoleOutput = document.getElementById('console-output');
 const addVariableBtn = document.getElementById('add-variable');
 const addMathBtn = document.getElementById('add-math');
 const runBtn = document.getElementById('run');
+const addPrintBtn = document.getElementById('add-print');
+
 
 // === Функция логирования в консоль на странице ===
 function log(message) {
@@ -36,22 +38,23 @@ function createVariableBlock() {
 // === Создание блока математики ===
 function createMathBlock() {
     const operation = prompt('Введите операцию (add/sub):', 'add');
-    if (operation) {
-        const left = parseInt(prompt('Введите первое число:', '5'));
-        const right = parseInt(prompt('Введите второе число:', '3'));
-        
-        const block = {
-            id: Date.now(),
-            type: 'math',
-            operation: operation,
-            left: left,
-            right: right
-        };
-        program.push(block);
-        renderBlocks();
-        log(`Добавлена операция: ${left} ${operation} ${right}`);
-    }
+    const left = parseInt(prompt('Введите первое число:', '5'));
+    const right = parseInt(prompt('Введите второе число:', '3'));
+    const resultVar = prompt('В какую переменную сохранить?', 'result');
+    
+    const block = {
+        id: Date.now(),
+        type: 'math',
+        operation: operation,
+        left: left,
+        right: right,
+        resultVar: resultVar
+    };
+    program.push(block);
+    renderBlocks();
+    log(`Добавлена операция: ${left} ${operation} ${right} → ${resultVar}`);
 }
+
 
 // === Отрисовка всех блоков ===
 function renderBlocks() {
@@ -67,9 +70,32 @@ function renderBlocks() {
             blockEl.textContent = `[${index + 1}] ➕ ${block.left} ${block.operation} ${block.right}`;
         }
         
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '❌';
+        deleteBtn.style.float = 'right';
+        deleteBtn.onclick = () => {
+            program.splice(index, 1);
+            renderBlocks();
+        };
+        blockEl.appendChild(deleteBtn);
+        
         blocksContainer.appendChild(blockEl);
     });
 }
+
+
+function createPrintBlock() {
+    const varName = prompt('Какую переменную вывести?', 'result');
+    const block = {
+        id: Date.now(),
+        type: 'print',
+        variable: varName
+    };
+    program.push(block);
+    renderBlocks();
+    log(`Добавлен вывод: ${varName}`);
+}
+
 
 // === Выполнение одного блока ===
 function executeBlock(block) {
@@ -84,9 +110,24 @@ function executeBlock(block) {
         } else if (block.operation === 'sub') {
             result = block.left - block.right;
         }
-        log(`Результат: ${result}`);
+        
+        if (block.resultVar) {
+            memory[block.resultVar] = result;
+            log(`${block.resultVar} = ${result}`);
+        } else {
+            log(`Результат: ${result}`);
+        }
+    }
+    else if (block.type === 'print') {
+        const value = memory[block.variable];
+        if (value !== undefined) {
+            log(`🖨️ ${block.variable} = ${value}`);
+        } else {
+            log(`❌ Переменная "${block.variable}" не найдена!`);
+        }
     }
 }
+
 
 // === Запуск программы ===
 function runProgram() {
@@ -106,6 +147,8 @@ function runProgram() {
 addVariableBtn.addEventListener('click', createVariableBlock);
 addMathBtn.addEventListener('click', createMathBlock);
 runBtn.addEventListener('click', runProgram);
+addPrintBtn.addEventListener('click', createPrintBlock);
+
 
 // === Приветствие ===
 log('Добро пожаловать! Добавьте блоки и нажмите "Запустить"');
