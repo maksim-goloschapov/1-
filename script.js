@@ -40,7 +40,7 @@ function createMathBlock() {
     const operation = prompt('Введите операцию (сложение/вычитание/умножение/деление):', 'сложение');
     const left = parseInt(prompt('Введите первое число:', '5'));
     const right = parseInt(prompt('Введите второе число:', '3'));
-    const resultVar = prompt('В какую переменную сохранить?', 'result');
+    const resultVar = prompt('В какую переменную сохранить?', 'результат');
     
     const block = {
         id: Date.now(),
@@ -95,7 +95,7 @@ function renderBlocks() {
 
 
 function createPrintBlock() {
-    const varName = prompt('Какую переменную вывести?', 'result');
+    const varName = prompt('Какую переменную вывести?', 'результат');
     if (varName) {
         const block = {
             id: Date.now(),
