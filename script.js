@@ -25,7 +25,7 @@ function createVariableBlock() {
     if (name) {
         const block = {
             id: Date.now(),
-            type: 'variable',
+            type: 'переменная',
             name: name,
             value: 0
         };
@@ -37,14 +37,14 @@ function createVariableBlock() {
 
 // === Создание блока математики ===
 function createMathBlock() {
-    const operation = prompt('Введите операцию (add/sub):', 'add');
+    const operation = prompt('Введите операцию (сложение/вычитание/умножение/деление):', 'сложение');
     const left = parseInt(prompt('Введите первое число:', '5'));
     const right = parseInt(prompt('Введите второе число:', '3'));
     const resultVar = prompt('В какую переменную сохранить?', 'result');
     
     const block = {
         id: Date.now(),
-        type: 'math',
+        type: 'математика',
         operation: operation,
         left: left,
         right: right,
@@ -64,10 +64,20 @@ function renderBlocks() {
         const blockEl = document.createElement('div');
         blockEl.className = `block block-${block.type}`;
         
-        if (block.type === 'variable') {
+        if (block.type === 'переменная') {
             blockEl.textContent = `[${index + 1}] 📦 Переменная: ${block.name} = ${block.value}`;
-        } else if (block.type === 'math') {
-            blockEl.textContent = `[${index + 1}] ➕ ${block.left} ${block.operation} ${block.right}`;
+        } 
+        else if (block.type === 'математика') {
+            let opSymbol = block.operation;
+            if (block.operation === 'сложение') opSymbol = '+';
+            else if (block.operation === 'вычитание') opSymbol = '-';
+            else if (block.operation === 'умножение') opSymbol = '×';
+            else if (block.operation === 'деление') opSymbol = '÷';
+            
+            blockEl.textContent = `[${index + 1}] ➕ ${block.left} ${opSymbol} ${block.right}`;
+        }
+        else if (block.type === 'вывод') {
+            blockEl.textContent = `[${index + 1}] 🖨️ Вывод: ${block.variable}`;
         }
         
         const deleteBtn = document.createElement('button');
@@ -86,29 +96,35 @@ function renderBlocks() {
 
 function createPrintBlock() {
     const varName = prompt('Какую переменную вывести?', 'result');
-    const block = {
-        id: Date.now(),
-        type: 'print',
-        variable: varName
-    };
-    program.push(block);
-    renderBlocks();
-    log(`Добавлен вывод: ${varName}`);
+    if (varName) {
+        const block = {
+            id: Date.now(),
+            type: 'вывод',
+            variable: varName
+        };
+        program.push(block);
+        renderBlocks();
+        log(`Добавлен вывод: ${varName}`);
+    }
 }
 
 
 // === Выполнение одного блока ===
 function executeBlock(block) {
-    if (block.type === 'variable') {
+    if (block.type === 'переменная') {
         memory[block.name] = block.value;
         log(`Создана переменная ${block.name} = ${block.value}`);
     } 
-    else if (block.type === 'math') {
+    else if (block.type === 'математика') {
         let result;
-        if (block.operation === 'add') {
+        if (block.operation === 'сложение') {
             result = block.left + block.right;
-        } else if (block.operation === 'sub') {
+        } else if (block.operation === 'вычитание') {
             result = block.left - block.right;
+        } else if (block.operation === 'умножение') {
+            result = block.left * block.right;
+        } else if (block.operation === 'деление') {
+            result = Math.floor(block.left / block.right);
         }
         
         if (block.resultVar) {
@@ -118,7 +134,7 @@ function executeBlock(block) {
             log(`Результат: ${result}`);
         }
     }
-    else if (block.type === 'print') {
+    else if (block.type === 'вывод') {
         const value = memory[block.variable];
         if (value !== undefined) {
             log(`🖨️ ${block.variable} = ${value}`);
