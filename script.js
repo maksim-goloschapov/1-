@@ -1,6 +1,7 @@
 // === Хранилище данных ===
 let program = [];  // Массив блоков
 let memory = {};   // Переменные
+let activeIfBlock = null;  //IF, внутрь которого добавляем блоки
 
 // === Элементы DOM ===
 const blocksContainer = document.getElementById('blocks-container');
@@ -10,6 +11,8 @@ const addMathBtn = document.getElementById('add-math');
 const runBtn = document.getElementById('run');
 const addPrintBtn = document.getElementById('add-print');
 const addIfBtn = document.getElementById('add-if');
+const exitIfBtn = document.getElementById('exit-if');
+exitIfBtn.addEventListener('click', exitIfMode);
 
 
 // === Функция логирования в консоль на странице ===
@@ -30,9 +33,17 @@ function createVariableBlock() {
             name: name,
             value: 0
         };
-        program.push(block);
+        
+        // Добавляем в активный IF или в основную программу
+        if (activeIfBlock) {
+            activeIfBlock.thenBlocks.push(block);
+            log(`Добавлена переменная ${name} внутрь IF`);
+        } else {
+            program.push(block);
+            log(`Добавлена переменная: ${name}`);
+        }
+        
         renderBlocks();
-        log(`Добавлена переменная: ${name}`);
     }
 }
 
@@ -49,9 +60,17 @@ function createMathBlock() {
             expression: expression,
             resultVar: resultVar
         };
-        program.push(block);
+        
+        // Добавляем в активный IF или в основную программу
+        if (activeIfBlock) {
+            activeIfBlock.thenBlocks.push(block);
+            log(`Добавлено выражение ${expression} внутрь IF`);
+        } else {
+            program.push(block);
+            log(`Добавлено выражение: ${expression} → ${resultVar}`);
+        }
+        
         renderBlocks();
-        log(`Добавлено выражение: ${expression} → ${resultVar}`);
     }
 }
 
@@ -60,36 +79,73 @@ function createMathBlock() {
 function renderBlocks() {
     blocksContainer.innerHTML = '';
     
-    program.forEach((block, index) => {
-        const blockEl = document.createElement('div');
-        blockEl.className = `block block-${block.type}`;
-        
-        if (block.type === 'переменная') {
-            blockEl.textContent = `[${index + 1}] 📦 Переменная: ${block.name} = ${block.value}`;
-        } 
-        else if (block.type === 'математика') {
-            blockEl.textContent = `[${index + 1}] ➕ ${block.expression}`;
-        }
-        else if (block.type === 'вывод') {
-            blockEl.textContent = `[${index + 1}] 🖨️ Вывод: ${block.variable}`;
-        }
-        else if (block.type === 'если') {
-            const cond = block.condition;
-            blockEl.textContent = `[${index + 1}] ❓ Если ${cond.left} ${cond.operator} ${cond.right}`;
-            blockEl.style.borderLeft = '5px solid #f39c12'; 
-        }
-        
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = '❌';
-        deleteBtn.style.float = 'right';
-        deleteBtn.onclick = () => {
-            program.splice(index, 1);
-            renderBlocks();
-        };
-        blockEl.appendChild(deleteBtn);
-        
-        blocksContainer.appendChild(blockEl);
-    });
+    function renderBlockList(blocks, container, indent = 0) {
+        blocks.forEach((block, index) => {
+            const blockEl = document.createElement('div');
+            blockEl.className = `block block-${block.type}`;
+            blockEl.style.marginLeft = `${indent * 30}px`; 
+            
+            if (block.type === 'переменная') {
+                blockEl.textContent = `[${index + 1}] 📦 Переменная: ${block.name} = ${block.value}`;
+            } 
+            else if (block.type === 'математика') {
+                blockEl.textContent = `[${index + 1}] ➕ ${block.expression}`;
+            }
+            else if (block.type === 'вывод') {
+                blockEl.textContent = `[${index + 1}] 🖨️ Вывод: ${block.variable}`;
+            }
+            else if (block.type === 'если') {
+                const cond = block.condition;
+                blockEl.textContent = `[${index + 1}] ❓ Если ${cond.left} ${cond.operator} ${cond.right}`;
+                blockEl.style.borderLeft = '5px solid #f39c12';
+                
+                const addInsideBtn = document.createElement('button');
+                addInsideBtn.textContent = '➕ Внутрь';
+                addInsideBtn.style.marginLeft = '10px';
+                addInsideBtn.style.background = '#27ae60';
+                addInsideBtn.style.color = 'white';
+                addInsideBtn.style.border = 'none';
+                addInsideBtn.style.padding = '5px 10px';
+                addInsideBtn.style.borderRadius = '3px';
+                addInsideBtn.style.cursor = 'pointer';
+                addInsideBtn.onclick = () => {
+                    activeIfBlock = block;
+                    log(`📝 Добавляем блоки внутрь IF: ${cond.left} ${cond.operator} ${cond.right}`);
+                    log(`💡 Нажмите на кнопку добавления блока (переменная, математика, вывод)`);
+                };
+                blockEl.appendChild(addInsideBtn);
+                
+                if (block.thenBlocks && block.thenBlocks.length > 0) {
+                    const nestedContainer = document.createElement('div');
+                    nestedContainer.style.borderLeft = '2px dashed #ccc';
+                    nestedContainer.style.marginLeft = '20px';
+                    nestedContainer.style.marginTop = '5px';
+                    nestedContainer.style.paddingLeft = '10px';
+                    renderBlockList(block.thenBlocks, nestedContainer, indent + 1);
+                    blockEl.appendChild(nestedContainer);
+                }
+            }
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = '❌';
+            deleteBtn.style.float = 'right';
+            deleteBtn.onclick = () => {
+                if (activeIfBlock && activeIfBlock.thenBlocks.includes(block)) {
+                    const idx = activeIfBlock.thenBlocks.indexOf(block);
+                    activeIfBlock.thenBlocks.splice(idx, 1);
+                } else {
+                    const idx = program.indexOf(block);
+                    if (idx !== -1) program.splice(idx, 1);
+                }
+                renderBlocks();
+            };
+            blockEl.appendChild(deleteBtn);
+            
+            container.appendChild(blockEl);
+        });
+    }
+    
+    renderBlockList(program, blocksContainer, 0);
 }
 
 
@@ -101,9 +157,28 @@ function createPrintBlock() {
             type: 'вывод',
             variable: varName
         };
-        program.push(block);
+        
+        // Добавляем в активный IF или в основную программу
+        if (activeIfBlock) {
+            activeIfBlock.thenBlocks.push(block);
+            log(`Добавлен вывод ${varName} внутрь IF`);
+        } else {
+            program.push(block);
+            log(`Добавлен вывод: ${varName}`);
+        }
+        
         renderBlocks();
-        log(`Добавлен вывод: ${varName}`);
+    }
+}
+
+// === Выйти из режима добавления в IF ===
+function exitIfMode() {
+    if (activeIfBlock) {
+        const cond = activeIfBlock.condition;
+        log(`✅ Выход из IF: ${cond.left} ${cond.operator} ${cond.right}`);
+        activeIfBlock = null;
+    } else {
+        log(`ℹ️ Сейчас не выбран IF для добавления блоков`);
     }
 }
 
