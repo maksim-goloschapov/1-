@@ -37,22 +37,21 @@ function createVariableBlock() {
 
 // === Создание блока математики ===
 function createMathBlock() {
-    const operation = prompt('Введите операцию (сложение/вычитание/умножение/деление):', 'сложение');
-    const left = parseInt(prompt('Введите первое число:', '5'));
-    const right = parseInt(prompt('Введите второе число:', '3'));
-    const resultVar = prompt('В какую переменную сохранить?', 'результат');
+    const expression = prompt('Введите выражение (например: (5 + 3) × 2):', '5 + 3');
     
-    const block = {
-        id: Date.now(),
-        type: 'математика',
-        operation: operation,
-        left: left,
-        right: right,
-        resultVar: resultVar
-    };
-    program.push(block);
-    renderBlocks();
-    log(`Добавлена операция: ${left} ${operation} ${right} → ${resultVar}`);
+    if (expression) {
+        const resultVar = prompt('В какую переменную сохранить?', 'результат');
+        
+        const block = {
+            id: Date.now(),
+            type: 'математика',
+            expression: expression,
+            resultVar: resultVar
+        };
+        program.push(block);
+        renderBlocks();
+        log(`Добавлено выражение: ${expression} → ${resultVar}`);
+    }
 }
 
 
@@ -68,13 +67,7 @@ function renderBlocks() {
             blockEl.textContent = `[${index + 1}] 📦 Переменная: ${block.name} = ${block.value}`;
         } 
         else if (block.type === 'математика') {
-            let opSymbol = block.operation;
-            if (block.operation === 'сложение') opSymbol = '+';
-            else if (block.operation === 'вычитание') opSymbol = '-';
-            else if (block.operation === 'умножение') opSymbol = '×';
-            else if (block.operation === 'деление') opSymbol = '÷';
-            
-            blockEl.textContent = `[${index + 1}] ➕ ${block.left} ${opSymbol} ${block.right}`;
+            blockEl.textContent = `[${index + 1}] ➕ ${block.expression}`;
         }
         else if (block.type === 'вывод') {
             blockEl.textContent = `[${index + 1}] 🖨️ Вывод: ${block.variable}`;
@@ -108,6 +101,67 @@ function createPrintBlock() {
     }
 }
 
+// === Парсер математических выражений со скобками ===
+function evaluateExpression(expr) {
+    expr = expr.replace(/\s/g, '');
+    
+    expr = expr.replace(/сложение/g, '+');
+    expr = expr.replace(/вычитание/g, '-');
+    expr = expr.replace(/умножение/g, '*');
+    expr = expr.replace(/деление/g, '/');
+    expr = expr.replace(/×/g, '*');
+    expr = expr.replace(/÷/g, '/');
+    
+    return calculate(expr);
+}
+
+function calculate(expr) {
+    expr = expr.replace(/\s/g, '');
+    
+    while (expr.includes('(')) {
+        const match = expr.match(/\([^()]+\)/);
+        if (match) {
+            const innerExpr = match[0].slice(1, -1);
+            const result = calculateSimple(innerExpr);
+            expr = expr.replace(match[0], result);
+        }
+    }
+    
+    return calculateSimple(expr);
+}
+function calculateSimple(expr) {
+    expr = expr.replace(/\s/g, '');
+    
+    const mulDivRegex = /(-?\d+\.?\d*)\s*([×*÷/])\s*(-?\d+\.?\d*)/;
+    let match;
+    
+    while ((match = mulDivRegex.exec(expr)) !== null) {
+        const left = parseFloat(match[1]);
+        const op = match[2];
+        const right = parseFloat(match[3]);
+        
+        let result;
+        if (op === '*' || op === '×') {
+            result = left * right;
+        } else if (op === '/' || op === '÷') {
+            result = Math.floor(left / right);
+        }
+        
+        expr = expr.replace(match[0], result);
+    }
+    
+    const addSubRegex = /(-?\d+\.?\d*)\s*([+-])\s*(-?\d+\.?\d*)/;
+    while ((match = addSubRegex.exec(expr)) !== null) {
+        const left = parseFloat(match[1]);
+        const op = match[2];
+        const right = parseFloat(match[3]);
+        
+        const result = op === '+' ? left + right : left - right;
+        expr = expr.replace(match[0], result);
+    }
+    
+    return parseFloat(expr);
+}
 
 // === Выполнение одного блока ===
 function executeBlock(block) {
@@ -116,24 +170,19 @@ function executeBlock(block) {
         log(`Создана переменная ${block.name} = ${block.value}`);
     } 
     else if (block.type === 'математика') {
-        let result;
-        if (block.operation === 'сложение') {
-            result = block.left + block.right;
-        } else if (block.operation === 'вычитание') {
-            result = block.left - block.right;
-        } else if (block.operation === 'умножение') {
-            result = block.left * block.right;
-        } else if (block.operation === 'деление') {
-            result = Math.floor(block.left / block.right);
-        }
+        try {
+            const result = evaluateExpression(block.expression);
         
-        if (block.resultVar) {
-            memory[block.resultVar] = result;
-            log(`${block.resultVar} = ${result}`);
+            if (block.resultVar) {
+                memory[block.resultVar] = result;
+                log(`${block.resultVar} = ${result}`);
         } else {
             log(`Результат: ${result}`);
         }
+    } catch (error) {
+        log(`❌ Ошибка в выражении "${block.expression}": ${error.message}`);
     }
+}
     else if (block.type === 'вывод') {
         const value = memory[block.variable];
         if (value !== undefined) {
@@ -169,6 +218,8 @@ new Sortable(blocksContainer, {
         program.splice(evt.newIndex, 0, item);
         
         console.log(`Блок перемещён с ${evt.oldIndex} на ${evt.newIndex}`);
+        
+        renderBlocks();
     }
 });
 
