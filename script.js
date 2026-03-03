@@ -9,6 +9,7 @@ const addVariableBtn = document.getElementById('add-variable');
 const addMathBtn = document.getElementById('add-math');
 const runBtn = document.getElementById('run');
 const addPrintBtn = document.getElementById('add-print');
+const addIfBtn = document.getElementById('add-if');
 
 
 // === Функция логирования в консоль на странице ===
@@ -72,6 +73,11 @@ function renderBlocks() {
         else if (block.type === 'вывод') {
             blockEl.textContent = `[${index + 1}] 🖨️ Вывод: ${block.variable}`;
         }
+        else if (block.type === 'если') {
+            const cond = block.condition;
+            blockEl.textContent = `[${index + 1}] ❓ Если ${cond.left} ${cond.operator} ${cond.right}`;
+            blockEl.style.borderLeft = '5px solid #f39c12'; 
+        }
         
         const deleteBtn = document.createElement('button');
         deleteBtn.textContent = '❌';
@@ -98,6 +104,29 @@ function createPrintBlock() {
         program.push(block);
         renderBlocks();
         log(`Добавлен вывод: ${varName}`);
+    }
+}
+
+// === Создание блока IF ===
+function createIfBlock() {
+    const left = prompt('Левая часть условия (число или имя переменной):', 'x');
+    const operator = prompt('Оператор (>, <, ==, !=, >=, <=):', '>');
+    const right = prompt('Правая часть условия (число или имя переменной):', '0');
+    
+    if (left && operator && right) {
+        const block = {
+            id: Date.now(),
+            type: 'если',
+            condition: {
+                left: left,
+                operator: operator,
+                right: right
+            },
+            thenBlocks: []
+        };
+        program.push(block);
+        renderBlocks();
+        log(`Добавлено условие: ${left} ${operator} ${right}`);
     }
 }
 
@@ -163,6 +192,36 @@ function calculateSimple(expr) {
     return parseFloat(expr);
 }
 
+// === Проверка условия IF ===
+function checkCondition(condition) {
+    let leftVal = parseFloat(condition.left);
+    let rightVal = parseFloat(condition.right);
+    
+    if (isNaN(leftVal) && memory[condition.left] !== undefined) {
+        leftVal = memory[condition.left];
+    }
+    if (isNaN(rightVal) && memory[condition.right] !== undefined) {
+        rightVal = memory[condition.right];
+    }
+    
+    if (isNaN(leftVal) || isNaN(rightVal)) {
+        log(`❌ Ошибка: не удалось получить значения для условия`);
+        return false;
+    }
+    
+    switch (condition.operator) {
+        case '>':  return leftVal > rightVal;
+        case '<':  return leftVal < rightVal;
+        case '==': return leftVal == rightVal;
+        case '!=': return leftVal != rightVal;
+        case '>=': return leftVal >= rightVal;
+        case '<=': return leftVal <= rightVal;
+        default:
+            log(`❌ Неизвестный оператор: ${condition.operator}`);
+            return false;
+    }
+}
+
 // === Выполнение одного блока ===
 function executeBlock(block) {
     if (block.type === 'переменная') {
@@ -191,6 +250,19 @@ function executeBlock(block) {
             log(`❌ Переменная "${block.variable}" не найдена!`);
         }
     }
+    else if (block.type === 'если') {
+        const conditionTrue = checkCondition(block.condition);
+    
+        if (conditionTrue) {
+            log(`✅ Условие истинно: выполняем блоки внутри IF`);
+        
+            for (let i = 0; i < block.thenBlocks.length; i++) {
+                executeBlock(block.thenBlocks[i]);
+            }
+    } else {
+        log(`⏭️ Условие ложно: пропускаем блоки внутри IF`);
+    }
+}
 }
 
 
@@ -230,7 +302,7 @@ addVariableBtn.addEventListener('click', createVariableBlock);
 addMathBtn.addEventListener('click', createMathBlock);
 runBtn.addEventListener('click', runProgram);
 addPrintBtn.addEventListener('click', createPrintBlock);
-
+addIfBtn.addEventListener('click', createIfBlock);
 
 // === Приветствие ===
 log('Добро пожаловать! Добавьте блоки и нажмите "Запустить"');
