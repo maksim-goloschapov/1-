@@ -158,6 +158,21 @@ function runProgram() {
     log('=== Готово ===');
     log(`Итоговые переменные: ${JSON.stringify(memory)}`);
 }
+// === Drag-and-Drop для блоков ===
+new Sortable(blocksContainer, {
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    dragClass: 'sortable-drag',
+    
+    onEnd: function(evt) {
+        const item = program.splice(evt.oldIndex, 1)[0];
+        program.splice(evt.newIndex, 0, item);
+        
+        console.log(`Блок перемещён с ${evt.oldIndex} на ${evt.newIndex}`);
+    }
+});
+
+console.log('Drag-and-Drop активирован! 🎯');
 
 // === Обработчики кнопок ===
 addVariableBtn.addEventListener('click', createVariableBlock);

@@ -89,3 +89,17 @@ h2 {
 .block-math {
     border-left: 5px solid #2ecc71;
 }
+
+.sortable-ghost {
+    opacity: 0.4;
+    background: #c8ebfb;
+    border: 2px dashed #3498db;
+}
+
+.sortable-drag {
+    cursor: move;
+}
+
+.block {
+    cursor: move;
+}
