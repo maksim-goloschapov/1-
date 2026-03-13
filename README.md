@@ -17,6 +17,4 @@
 -  **Подсветка ошибок** — красная рамка и анимация при ошибке
 
 ## Как запустить
-
    https://maksim-goloschapov.github.io/1-/
-   git clone https://github.com/maksim-goloschapov/1-.git
