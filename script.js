@@ -291,12 +291,9 @@ function renderBlocks() {
             blockEl.className = `block block-${block.type}`;
             blockEl.style.marginLeft = `${indent * 30}px`;
             
-            // === Добавь эту проверку ошибок ===
             if (block.error) {
                 blockEl.classList.add('block-error');
             }
-            // ===================================
-            
             if (block.type === 'переменная') {
                 blockEl.textContent = `[${index + 1}] 📦 Переменная: ${block.name} = ${block.value}`;
             } 
@@ -392,14 +389,12 @@ function renderBlocks() {
             deleteBtn.style.float = 'right';
             deleteBtn.onclick = (e) => {
                 e.stopPropagation();
-                // Удаляем из program
                 let idx = program.indexOf(block);
                 if (idx !== -1) {
                     program.splice(idx, 1);
                     renderBlocks();
                     return;
                 }
-                // Ищем в IF блоках
                 program.forEach(b => {
                     if (b.type === 'если') {
                         idx = b.thenBlocks.indexOf(block);
@@ -470,5 +465,4 @@ addPrintBtn.addEventListener('click', createPrintBlock);
 addIfBtn.addEventListener('click', createIfBlock);
 exitIfBtn.addEventListener('click', exitIfMode);
 
-// === Приветствие ===
 log('Добро пожаловать! Добавьте блоки и нажмите "Запустить"');
